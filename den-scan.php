@@ -158,11 +158,7 @@ askscan:
       }
     else
       {
-        if ($scan == "15")
-          {
-            goto thephuckinstart;
-          }
-        elseif ($scan == 'q' | $scan == 'Q')
+        if ($scan == 'q' | $scan == 'Q')
           {
             echo "\n\n\t До свидания, хорошего дня :)\n\n";
             die();
