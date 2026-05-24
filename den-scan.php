@@ -114,7 +114,7 @@ system("clear");
 
             $lblue Scanning Site : " . $fgreen . $ipsl . $ip . $blue . "
       \n\n";
-    echo $yellow . " [0]  Основной Разведка$white (Название сайта, IP-адрес, CMS, Cloudflare Detection, Robots.txt Scanner)$yellow \n [1]  Whois Lookup \n [2]  Поиск Geo-IP \n [3]  Захватить баннеры \n [4]  DNS Lookup \n [5]  Калькулятор подсети \n [6] Сканирование портов NMAP \n [7] Субдомен Сканер \n [8] Обратный IP-поиск и обнаружение CMS \n [9]  SQLi Scanner$white (Находит ссылки с параметром и сканирует на основе ошибок SQLi)$yellow \n [10] Блоггеры Посмотреть$white (Информация, которая Блоггеры могут быть заинтересованы)$yellow \n [11] WordPress Scan$white (Только если целевой сайт работает на WP)$yellow \n [12] Crawler \n [13] MX Lookup \n [14] HTTP Security Headers$white (Проверка заголовков безопасности)$yellow \n [15] Сканирование Backup/Config файлов$white (Поиск опасных файлов)$yellow \n [16] SSL/TLS Анализ$white (Проверка версии и конфигурации SSL)$yellow \n [17] Open Redirect Check$white (Проверка на открытые редиректы)$yellow \n [18] Information Disclosure$white (Проверка утечек информации)$yellow \n$magenta [A] Scan For Everything - (Старый хромой сканер) \n$blue [F]  Исправить (проверяет наличие необходимых модулей и устанавливает недостающие) \n$fgreen [U]  Проверить наличие обновлений \n$white [B]  Сканировать другой сайт (Назад к выбору сайта) \n$red [Q]  Выход! \n\n" . $cln;
+    echo $yellow . " [0]  Основной Разведка$white (Название сайта, IP-адрес, CMS, Cloudflare Detection, Robots.txt Scanner)$yellow \n [1]  Whois Lookup \n [2]  Поиск Geo-IP \n [3]  Захватить баннеры \n [4]  DNS Lookup \n [5]  Калькулятор подсети \n [6] Сканирование портов NMAP \n [7] Субдомен Сканер \n [8] Обратный IP-поиск и обнаружение CMS \n [9]  SQLi Scanner$white (Находит ссылки с параметром и сканирует на основе ошибок SQLi)$yellow \n [10] Блоггеры Посмотреть$white (Информация, которая Блоггеры могут быть заинтересованы)$yellow \n [11] WordPress Scan$white (Только если целевой сайт работает на WP)$yellow \n [12] Crawler \n [13] MX Lookup \n [14] HTTP Security Headers$white (Проверка заголовков безопасности)$yellow \n [15] Сканирование Backup/Config файлов$white (Поиск опасных файлов)$yellow \n [16] SSL/TLS Анализ$white (Проверка версии и конфигурации SSL)$yellow \n [17] Open Redirect Check$white (Проверка на открытые редиректы)$yellow \n [18] Information Disclosure$white (Проверка утечек информации)$yellow \n [19] Port Exposure Analyzer$white (Поиск рискованных открытых портов из Nmap)$yellow \n [20] Quick Web Vuln Fingerprint$white (XSS/LFI/Debug/Phpinfo быстрые проверки)$yellow \n$magenta [A] Scan For Everything - (Старый хромой сканер) \n$blue [F]  Исправить (проверяет наличие необходимых модулей и устанавливает недостающие) \n$fgreen [U]  Проверить наличие обновлений \n$white [B]  Сканировать другой сайт (Назад к выбору сайта) \n$red [Q]  Выход! \n\n" . $cln;
 askscan:
     userinput("Выберите любое сканирование или действие из списка выше");
     $scan = trim(fgets(STDIN, 1024));
@@ -139,6 +139,8 @@ askscan:
         '16',
         '17',
         '18',
+        '19',
+        '20',
         'F',
         'f',
         'A',
@@ -331,6 +333,35 @@ askscan:
             $urlnmap    = "http://api.hackertarget.com/nmap/?q=" . $lwwww;
             $resultnmap = readcontents($urlnmap);
             echo $bold . $fgreen . $resultnmap;
+            echo "\n\n";
+            echo $bold . $yellow . "[*] Сканирование завершено. Нажмите Enter, чтобы продолжить ИЛИ CTRL + C, чтобы остановить\n\n";
+            trim(fgets(STDIN, 1024));
+            goto scanlist;
+          }
+        elseif ($scan == "19")
+          {
+            $reallink = $ipsl . $ip;
+            $lwwww    = str_replace("www.", "", $ip);
+            echo "\n$cln" . $lblue . $bold . "[+] Сканирование начинается ... \n";
+            echo $blue . $bold . "[i] Сканирование сайта:\e[92m $ipsl" . "$ip \n";
+            echo $bold . $yellow . "[S] Тип сканирования : Port Exposure Analyzer" . $cln;
+            echo $bold . $lblue . "\n[~] Получение Nmap результатов ... \n\n" . $cln;
+            $urlnmap    = "http://api.hackertarget.com/nmap/?q=" . $lwwww;
+            $resultnmap = readcontents($urlnmap);
+            echo $bold . $fgreen . $resultnmap . "\n";
+            analyzePortScanResults($resultnmap);
+            echo "\n\n";
+            echo $bold . $yellow . "[*] Сканирование завершено. Нажмите Enter, чтобы продолжить ИЛИ CTRL + C, чтобы остановить\n\n";
+            trim(fgets(STDIN, 1024));
+            goto scanlist;
+          }
+        elseif ($scan == "20")
+          {
+            $reallink = $ipsl . $ip;
+            echo "\n$cln" . $lblue . $bold . "[+] Сканирование начинается ... \n";
+            echo $blue . $bold . "[i] Сканирование сайта:\e[92m $ipsl" . "$ip \n";
+            echo $bold . $yellow . "[S] Тип сканирования : Quick Web Vuln Fingerprint" . $cln;
+            quickWebVulnFingerprint($reallink);
             echo "\n\n";
             echo $bold . $yellow . "[*] Сканирование завершено. Нажмите Enter, чтобы продолжить ИЛИ CTRL + C, чтобы остановить\n\n";
             trim(fgets(STDIN, 1024));
