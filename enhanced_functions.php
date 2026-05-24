@@ -240,4 +240,63 @@ function scanWordPressPluginsThemes($reallink) {
   }
 }
 
+// Расширенный анализ портов на основе ответа Nmap
+function analyzePortScanResults($nmap_output) {
+  global $bold, $lblue, $fgreen, $red, $yellow, $cln;
+
+  echo $bold . $yellow . "\n[*] Port Exposure Analysis:\n" . $cln;
+
+  $high_risk_ports = array(
+    '21' => 'FTP (проверьте anonymous login и TLS)',
+    '23' => 'Telnet (небезопасный протокол, лучше отключить)',
+    '25' => 'SMTP (риск open relay / spoofing)',
+    '53' => 'DNS (проверьте recursion и zone transfer)',
+    '139' => 'NetBIOS (внутренний сервис не должен быть наружу)',
+    '445' => 'SMB (частая цель эксплойтов)',
+    '1433' => 'MSSQL (ограничьте доступ по IP)',
+    '3306' => 'MySQL (должен быть закрыт снаружи)',
+    '3389' => 'RDP (только через VPN/allowlist)',
+    '5432' => 'PostgreSQL (ограничьте доступ по IP)',
+    '6379' => 'Redis (нельзя оставлять без auth)',
+    '9200' => 'Elasticsearch (часто утечки данных)',
+    '27017' => 'MongoDB (запретить внешний доступ)',
+  );
+
+  $found = false;
+  foreach ($high_risk_ports as $port => $advice) {
+    if (preg_match('/^' . preg_quote($port, '/') . '\/tcp\s+open/im', $nmap_output)) {
+      echo $bold . $red . "[WARN] Open " . $port . "/tcp: " . $advice . $cln . "\n";
+      $found = true;
+    }
+  }
+
+  if (!$found) {
+    echo $bold . $fgreen . "[OK] Критичные из списка порты не обнаружены открытыми" . $cln . "\n";
+  }
+}
+
+// Поиск распространенных web-уязвимостей через тестовые payload
+function quickWebVulnFingerprint($reallink) {
+  global $bold, $lblue, $fgreen, $red, $yellow, $cln;
+
+  echo $bold . $yellow . "\n[*] Quick Web Vulnerability Fingerprint:\n" . $cln;
+
+  $tests = array(
+    array('name' => 'XSS Reflection', 'path' => '/?q=%3Cscript%3Ealert(1)%3C/script%3E', 'needle' => '<script>alert(1)</script>'),
+    array('name' => 'LFI Traversal', 'path' => '/?file=../../../../etc/passwd', 'needle' => 'root:x:'),
+    array('name' => 'Debug Leak', 'path' => '/?debug=true', 'needle' => 'stack trace'),
+    array('name' => 'PHPInfo Leak', 'path' => '/phpinfo.php', 'needle' => 'phpinfo()'),
+  );
+
+  foreach ($tests as $test) {
+    $url = rtrim($reallink, '/') . $test['path'];
+    $resp = @readcontents($url);
+    if ($resp !== false && $resp !== null && stripos($resp, $test['needle']) !== false) {
+      echo $bold . $red . "[POTENTIAL] " . $test['name'] . ": " . $url . $cln . "\n";
+    } else {
+      echo $bold . $lblue . "[CHECKED] " . $test['name'] . ": " . $fgreen . "No obvious pattern" . $cln . "\n";
+    }
+  }
+}
+
 ?>
